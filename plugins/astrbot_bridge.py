@@ -18,7 +18,7 @@ from pyrogram.handlers import MessageHandler
 
 PLUGIN_NAME = "AstrBot 私人插件联动"
 PLUGIN_DESC = "NAS 保留下载，个人插件由本机 AstrBot 提供，文字结果更新原消息"
-PLUGIN_VERSION = "1.0.4"
+PLUGIN_VERSION = "1.0.5"
 
 NAS_COMMANDS = {
     "start",
@@ -443,6 +443,9 @@ async def receive_push(payload: dict) -> dict:
                 state["result_text"] = text
             await _update_text(client, chat_id, state, _with_saved_paths(text, state))
         saved_paths = []
+        photo_album = [] if len(media_parts) > 1 and all(
+            media.get("type") == "image" for media in media_parts
+        ) else None
         for media in media_parts:
             name = Path(str(media.get("name", "file")).replace("\\", "/")).name
             if name in {"", ".", ".."}:
@@ -460,7 +463,10 @@ async def receive_push(payload: dict) -> dict:
             )
             media_type = media.get("type")
             if media_type == "image":
-                await client.send_photo(chat_id, str(target))
+                if photo_album is not None:
+                    photo_album.append(pyrogram.types.InputMediaPhoto(str(target)))
+                else:
+                    await client.send_photo(chat_id, str(target))
             elif media_type == "animation":
                 await client.send_animation(chat_id, str(target))
             elif media_type == "video":
@@ -471,9 +477,15 @@ async def receive_push(payload: dict) -> dict:
                 await client.send_document(chat_id, str(target))
             else:
                 raise ValueError("Unsupported media type")
+        for offset in range(0, len(photo_album or []), 10):
+            group = photo_album[offset : offset + 10]
+            if len(group) == 1:
+                await client.send_photo(chat_id, group[0].media)
+            else:
+                await client.send_media_group(chat_id, group)
         if media_parts:
             body = text or state.get("result_text", "")
-            if re.search(r"正在|请稍候|请稍等|已开始生图任务", body):
+            if not text and re.search(r"正在|请稍候|请稍等|已开始生图任务", body):
                 body = ""
             state.setdefault("saved_paths", []).extend(saved_paths)
             await _update_text(

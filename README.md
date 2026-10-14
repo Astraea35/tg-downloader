@@ -41,6 +41,8 @@ NAS-native sticker saving remains available through `/save`.
 Music and generic image generation use the original authors' installed versions;
 the earlier TG forks are no longer deployed. Original music lyrics use image output.
 Video summaries and daily news use headings, separated paragraphs and source links.
+Daily anime listings include cover images downloaded through `tg_cover_proxy`
+on the NAS proxy. The gateway sends multiple covers as an album and saves them on the NAS.
 
 The bridge authenticates both directions and accepts only whitelisted private
 chats. Download commands, Twitter links, Steam links, torrent tasks and Telegram

@@ -110,6 +110,30 @@ def test_telegram_layout_separates_sections_and_items_without_changing_code():
     assert bridge.telegram_markdown(result) == result
 
 
+@pytest.mark.asyncio
+async def test_daily_covers_are_sent_as_an_album_without_losing_news_text(gateway, monkeypatch, tmp_path):
+    gateway.send_media_group = AsyncMock()
+    gateway.send_photo = AsyncMock()
+    bridge._bot_instance.app = SimpleNamespace(save_path=str(tmp_path))
+    monkeypatch.setattr(
+        bridge, "_download_asset",
+        lambda asset, destination: destination.write_bytes(b"cover"),
+    )
+    await bridge.receive_push({
+        "chat_id": "123", "request_id": "123-1",
+        "parts": [
+            {"type": "text", "text": "**今日日报**\n\n新闻正在更新"},
+            {"type": "image", "name": "cover-a.jpg"},
+            {"type": "image", "name": "cover-b.jpg"},
+        ],
+    })
+    gateway.send_media_group.assert_awaited_once()
+    assert len(gateway.send_media_group.call_args.args[1]) == 2
+    gateway.send_photo.assert_not_awaited()
+    assert "新闻正在更新" in gateway.edit_message_text.call_args.args[2]
+    assert "已保存到 NAS" in gateway.edit_message_text.call_args.args[2]
+
+
 def test_long_emoji_text_is_lossless_and_below_telegram_limit():
     text = ("中文 😀 **段落**\n" * 1000) + "END"
     chunks = bridge.split_text(text)
