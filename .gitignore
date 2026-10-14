@@ -1,0 +1,51 @@
+# ==============================================================================
+#                 Git Ignore - 敏感配置、会话凭证与运行时数据保护
+# ==============================================================================
+
+# 1. 敏感配置文件与环境变量 (严防泄露至 GitHub)
+config.yaml
+.env
+*.env
+*.key
+*.pem
+
+# 2. Telegram Pyrogram 会话凭据与运行时数据
+*.session
+*.session-journal
+sessions/
+data/
+plugins/data/
+data.yaml
+*.db
+*.sqlite
+
+# 3. 媒体下载目录与临时文件
+downloads/
+download/
+
+# 4. 日志目录与文件
+log/
+logs/
+*.log
+steam_service.log
+
+# 5. Python 编译缓存
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# 6. SteamCMD 与第三方本地临时数据
+steamcmd/
+steamcmd_data/
+steamcmd_config.json
+
+# 7. 系统与备份文件
+*.bak*
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+docker-compose.yml.~*
+tools/private/
+integration-backups/

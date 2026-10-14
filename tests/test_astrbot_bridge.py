@@ -1,0 +1,170 @@
+import importlib.util
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location(
+    "nas_bridge_test", ROOT / "plugins/astrbot_bridge.py"
+)
+bridge = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bridge)
+
+
+@pytest.fixture(autouse=True)
+def gateway():
+    import asyncio
+
+    client = SimpleNamespace(
+        edit_message_text=AsyncMock(),
+        send_message=AsyncMock(return_value=SimpleNamespace(id=99)),
+    )
+    bridge._bot_instance = SimpleNamespace(
+        bot=client,
+        allowed_user_ids=[123],
+        config={"plugins": {}},
+    )
+    bridge._states.clear()
+    bridge._delivered.clear()
+    bridge._states["123-1"] = {
+        "chat_id": "123",
+        "status_id": 77,
+        "pages": [],
+        "result_text": "",
+        "done": False,
+        "lock": asyncio.Lock(),
+    }
+    return client
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "/download https://t.me/c/123/4",
+        "/nyaa Frieren",
+        "/wp 123",
+        "https://x.com/example/status/123",
+        "https://steamcommunity.com/sharedfiles/filedetails/?id=1",
+        "magnet:?xt=urn:btih:123",
+        "/pan 测试",
+        "/restart",
+    ],
+)
+def test_downloads_stay_on_nas(text):
+    assert not bridge.should_forward(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "/bili BV123",
+        "/今日运势",
+        "/订阅列表",
+        "/生图 cat",
+        "/ainews",
+        "https://www.bilibili.com/video/BV123",
+        "你好",
+    ],
+)
+def test_personal_features_go_to_astrbot(text):
+    assert bridge.should_forward(text)
+
+
+def test_bare_media_stays_on_nas_but_caption_commands_can_be_forwarded():
+    assert not bridge.should_forward("", True)
+    assert bridge.should_forward("/升图", True)
+    assert bridge.normalize_command("/bili@my_bot BV123") == "/总结 BV123"
+    assert bridge.normalize_command("/news") == "/日报"
+
+
+def test_long_emoji_text_is_lossless_and_below_telegram_limit():
+    text = ("中文 😀 **段落**\n" * 1000) + "END"
+    chunks = bridge.split_text(text)
+    assert "".join(chunks) == text
+    assert all(len(chunk.encode("utf-16-le")) // 2 <= 3500 for chunk in chunks)
+
+
+@pytest.mark.asyncio
+async def test_progress_and_final_text_edit_the_same_message(gateway):
+    client = gateway
+    for text in ("正在搜索", "正在总结", "**最终结果**"):
+        result = await bridge.receive_push(
+            {
+                "chat_id": "123",
+                "request_id": "123-1",
+                "parts": [{"type": "text", "text": text}],
+            }
+        )
+        assert result["ok"]
+    assert client.edit_message_text.await_count == 3
+    assert {call.args[:2] for call in client.edit_message_text.await_args_list} == {
+        (123, 77)
+    }
+    client.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_long_result_keeps_the_remainder_when_markdown_is_rejected(gateway):
+    import pyrogram
+
+    client = gateway
+    client.send_message.side_effect = [
+        pyrogram.errors.EntityBoundsInvalid(),
+        SimpleNamespace(id=99),
+    ]
+    text = "a" * 3500 + "**remainder**"
+    await bridge.receive_push({
+        "chat_id": "123",
+        "request_id": "123-1",
+        "parts": [{"type": "text", "text": text}],
+    })
+    assert client.edit_message_text.await_args.args[2] == "a" * 3500
+    assert client.send_message.await_args.args[1] == "**remainder**"
+    assert client.send_message.await_args.kwargs["parse_mode"] == pyrogram.enums.ParseMode.DISABLED
+    assert bridge._states["123-1"]["pages"] == [99]
+
+
+@pytest.mark.asyncio
+async def test_plain_text_fallback_works_with_older_pyrogram(gateway, monkeypatch):
+    import pyrogram
+
+    monkeypatch.delattr(pyrogram.errors, "EntityBoundsInvalid", raising=False)
+    gateway.edit_message_text.side_effect = [pyrogram.errors.BadRequest(), None]
+    await bridge._edit_text(gateway, 123, 77, "status text")
+    assert gateway.edit_message_text.await_count == 2
+    assert gateway.edit_message_text.await_args.kwargs["parse_mode"] == pyrogram.enums.ParseMode.DISABLED
+
+
+@pytest.mark.asyncio
+async def test_unknown_request_and_unlisted_user_cannot_send_messages():
+    with pytest.raises(ValueError):
+        await bridge.receive_push({"chat_id": 456, "parts": []})
+    with pytest.raises(ValueError):
+        await bridge.receive_push(
+            {"chat_id": 123, "request_id": "unknown", "parts": []}
+        )
+
+
+@pytest.mark.asyncio
+async def test_duplicate_delivery_does_not_send_again():
+    client = bridge._bot_instance.bot
+    before = client.edit_message_text.await_count
+    payload = {
+        "chat_id": 123,
+        "request_id": "123-1",
+        "delivery_id": "delivery-123",
+        "parts": [{"type": "text", "text": "完成"}],
+    }
+    await bridge.receive_push(payload)
+    assert (await bridge.receive_push(payload))["duplicate"]
+    assert client.edit_message_text.await_count == before + 1
+
+
+def test_web_callback_requires_matching_secret():
+    bridge._bot_instance.config["plugins"]["astrbot_bridge"] = {
+        "shared_secret": "a" * 40
+    }
+    with pytest.raises(PermissionError):
+        bridge.handle_web_push({}, "b" * 40)

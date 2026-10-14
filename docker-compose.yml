@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+      - TZ=Asia/Shanghai
+    ports:
+      - "8191:8191"
+
+  tg-downloader:
+    image: tangyoha/telegram_media_downloader:latest
+    container_name: tg-downloader
+    restart: unless-stopped
+    depends_on:
+      - flaresolverr
+    volumes:
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/config.yaml:/app/config.yaml
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/data.yaml:/app/data.yaml
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/sessions:/app/sessions
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/log:/app/log
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/downloads:/app/download
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/bot.py:/app/module/bot.py
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/plugins:/app/module/plugins
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/media_downloader.py:/app/media_downloader.py
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/format.py:/app/utils/format.py
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/web.py:/app/module/web.py
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/pyrogram_extension.py:/app/module/pyrogram_extension.py
+      - ${APP_DIR:-/vol1/1000/Docker/tg-downloader}/templates:/app/module/templates
+    ports:
+      - "5000:5000"
