@@ -166,6 +166,8 @@ async def _capture_media(client, message) -> list[dict]:
         if message.photo
         else "image"
         if message.sticker
+        else "image"
+        if message.animation
         else "video"
         if message.video
         else "record"
@@ -179,6 +181,7 @@ async def _capture_media(client, message) -> list[dict]:
     media = (
         message.photo
         or message.sticker
+        or message.animation
         or message.video
         or message.voice
         or message.audio
@@ -189,8 +192,10 @@ async def _capture_media(client, message) -> list[dict]:
     extension = (
         ".jpg"
         if message.photo
-        else ".webp"
+        else Path(getattr(message.sticker, "file_name", "") or "").suffix or ".webp"
         if message.sticker
+        else Path(getattr(message.animation, "file_name", "") or "").suffix or ".mp4"
+        if message.animation
         else Path(getattr(media, "file_name", "") or "").suffix
         or (
             ".mp4"
