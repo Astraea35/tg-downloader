@@ -3,9 +3,13 @@
 2026-10-15 配置结果：
 
 - NAS Docker 负责 Telegram 收发、原有下载插件及文件保存。
-- 本机 AstrBot 的 `nas_tg` 平台使用独立的 TG 配置，明确选择 17 个个人插件。
+- 本机 AstrBot 的 `nas_tg` 平台使用独立的 TG 配置，明确选择 12 个插件。
 - QQ 仍使用原配置；群管理、群统计和群分析未加入 TG 插件列表。
-- TG 的新闻、视频总结、运势、订阅列表、OCR、系统状态、选歌列表和歌词默认发送文字。
+- TG 的新闻、视频总结、运势、订阅列表和系统状态默认发送文字。
+- B站总结保留原段落，补充视频标题、UP 主、时长和原视频链接；AI 早报使用标题、日期、正文和原文链接；日报按栏目分组，每条内容之间留空行。
+- OCR、AstrBot 表情包转换、今日小猪、提醒任务和 AI 菜谱已移出 TG 配置、帮助和菜单，直接输入这些指令也不会转发到本机插件。
+- 点歌和通用生图恢复到修改前的原作者版本：Zhalslar 的 `v2.2.0`、Railgun19457 的 `v1.6.10`。停止部署本次制作的两个 TG 适配副本；发送形式使用原插件行为，原版点歌的歌词输出为图片。
+- NAS 原生 `/save` 贴纸保存功能保留，与移除的 AstrBot 表情包转换插件不同。
 - 处理提示更新成最终结果；超过消息长度限制的文字分为多页。
 - 原进度消息已失效时，新建结果消息，保留最终文字和保存路径。
 - 后续歌词或图片处理标注保留此前已发送文件的 NAS 路径。
@@ -15,9 +19,8 @@
 - NAS 原有的哔哩哔哩总结、AI 新闻和日报移植插件已备份并删除。
 - Telegram、Twitter 下载、网盘/动漫检索和壁纸 HTTP 请求使用 NAS 配置的代理。
 - 本机多平台下载插件的媒体、缩略图、升图原图和分类模型下载使用 NAS 代理。
-- 音乐查询和音频下载配置为使用 NAS 代理。
-- TG 保留 AI 菜谱插件，排除会截断同名指令的群聊随机食物回复插件；QQ 配置保留。
-- TG 注册 45 个菜单命令，帮助和菜单说明保留原中文指令，菜单入口使用英文别名；启动和重载时同步默认、私聊与白名单会话的中文/英文菜单。
+- 音乐查询和音频下载仍保留已有 NAS 代理配置，原插件源码已恢复。
+- TG 注册 35 个菜单命令，帮助和菜单说明保留原中文指令，菜单入口使用英文别名；启动和重载时同步默认、私聊与白名单会话的中文/英文菜单。
 
 ## 常用命令
 
@@ -28,18 +31,12 @@
 | `/latest UP主` | 最新视频及总结 |
 | `/subscribe UP主`、`/unsubscribe UP主` | 修改 TG 会话订阅 |
 | `/ainews`、`/news` | AI 早报、综合日报 |
-| `/fortune`、`/pig` | 运势、今日小猪 |
+| `/fortune` | 运势 |
 | `/status` 或 `/状态` | 本机 AstrBot 所在 Windows 的状态 |
-| `/ocr` | 发送图片附上命令，或回复图片识别文字 |
-| `/convert` | 回复图片转换为文件 |
 | `/反色`、`/左右翻转`、`/转GIF` | GIF 工具箱；回复图片或视频使用 |
 | `/aqt` | 回复文字或图片生成名言梗图 |
 | `/mc成就 标题 描述`、`/mc挑战 标题 描述` | 支持回复图片作为 MC 成就图标 |
-| `/点歌 歌名`、`/QQ点歌 歌名 1`、`/查歌词 歌名` | 文字选歌、音频和文字歌词 |
-| `/吃什么 食材或口味` | 文字菜谱推荐 |
-| `/添加提醒 名称 cron 正文`、`/添加任务 名称 cron 指令` | 定时提醒和执行插件命令 |
-| `/立即提醒 名称`、`/立即执行 名称` | 手动触发已经创建的提醒或任务 |
-| `/删除提醒 名称`、`/删除任务 名称` | 删除指定提醒或任务 |
+| `/点歌 歌名`、`/QQ点歌 歌名 1`、`/查歌词 歌名` | 原作者点歌插件的选歌、音频和歌词 |
 | `/image 描述`、`/upscale` | 已启用的生图、回复图片升图 |
 | `/pan 关键词`、`/nyaa 关键词` | NAS 网盘、动漫资源检索 |
 | `/wp 创意工坊链接`、`/save` | NAS 壁纸下载、贴纸保存 |
@@ -53,12 +50,11 @@ NAS 联动插件映射到原来的中文指令，命令参数和回复附件保�
 
 ## 已验证的实际流程
 
-TG 私聊实测通过：运势、26 个 B 站订阅的列表、AI 新闻、综合日报、普通
-对话、系统状态、引用图片 OCR、图片转文件、今日小猪、B 站文字总结、
-GIF 反色、引用文字生成名言图片、引用图片生成 MC 成就、文字歌词、音频、
-文字菜谱、生图和图片工具转码。B 站定时更新也实际推送到了 TG。
+先前 TG 私聊实测通过：运势、26 个 B 站订阅的列表、AI 新闻、综合日报、普通
+对话、系统状态、B 站文字总结、GIF 反色、引用文字生成名言图片、
+引用图片生成 MC 成就、音频、生图和图片工具转码。B 站定时更新也实际推送到了 TG。
 文件传输测试确认 NAS 保存文件与返回路径一致。
-提醒和任务的创建、立即执行、删除共 6 项实测通过，临时测试任务已清理。
+本轮移除的功能不再作为 TG 可用功能，临时测试提醒和任务已清理。
 升图测试使用文字截图，被分类器正确识别为文字/UI 并跳过 AI 放大，
 已验证随后转码、发送文件和保留路径的流程；没有把这一项当作 AI 放大实测。
 
@@ -89,7 +85,7 @@ HTTP/HTTPS 代理变量，当前配置为 NAS HTTP 代理。没有实际下载�
 
 ## GitHub
 
-所有修改发布到 `Astraea35` 的个人仓库，状态插件使用 `dev` 分支。
+保留的魔改插件与联动代码发布到 `Astraea35` 的个人仓库，状态插件使用 `dev` 分支。点歌、生图恢复原作者仓库来源，本轮不再发布它们的 TG 副本。
 
 - [NAS 下载器](https://github.com/Astraea35/tg-downloader)
 - [联动平台](https://github.com/Astraea35/astrbot_plugin_tg_assistant_core)
@@ -99,13 +95,11 @@ HTTP/HTTPS 代理变量，当前配置为 NAS HTTP 代理。没有实际下载�
 - [系统状态](https://github.com/Astraea35/astrbot_plugin_status/tree/dev)
 - [今日运势](https://github.com/Astraea35/astrbot_plugin_jrysprpr)
 - [多平台解析与升图](https://github.com/Astraea35/astrbot_plugin_link_resolver_plus)
-- [图片转文件](https://github.com/Astraea35/astrbot_plugin_sticker_convert)
-- [OCR](https://github.com/Astraea35/astrbot_plugin_ocr)
 - [名言梗图](https://github.com/Astraea35/astrbot_plugin_quote_image)
 - [GIF 工具箱](https://github.com/Astraea35/astrbot_plugin_gif_master)
 - [MC 成就](https://github.com/Astraea35/astrbot_plugin_mc_ament)
-- [音乐](https://github.com/Astraea35/astrbot_plugin_music)
-- [通用生图](https://github.com/Astraea35/astrbot_plugin_image_generation)
+- [音乐原作者](https://github.com/Zhalslar/astrbot_plugin_music)
+- [通用生图原作者](https://github.com/Railgun19457/astrbot_plugin_image_generation)
 
 ## 维护资料
 

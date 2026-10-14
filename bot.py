@@ -188,11 +188,8 @@ class DownloadBot:
             types.BotCommand("ainews", "📰 每日 AI 资讯早报 (大模型提炼核心)"),
             types.BotCommand("news", "🗞️ 真寻综合早报 (一言/摸鱼/微语/热搜)"),
             types.BotCommand("fortune", "今日运势"),
-            types.BotCommand("pig", "今日小猪"),
             types.BotCommand("image", "生成图片"),
             types.BotCommand("upscale", "回复图片进行AI升图"),
-            types.BotCommand("ocr", "回复图片识别文字"),
-            types.BotCommand("convert", "回复图片或表情进行转换"),
             types.BotCommand("latest", "查询UP主最新视频并总结"),
             types.BotCommand("subscribe", "订阅B站UP主"),
             types.BotCommand("unsubscribe", "取消B站UP主订阅"),
@@ -205,14 +202,7 @@ class DownloadBot:
             types.BotCommand("mc_challenge", "/mc挑战 - 标题 描述；可回复图片"),
             types.BotCommand("music", "/点歌 - 歌名；文字列表选歌"),
             types.BotCommand("qqmusic", "/QQ点歌 - 歌名 序号"),
-            types.BotCommand("lyrics", "/查歌词 - 歌名；文字歌词"),
-            types.BotCommand("eat", "/吃什么 - 食材、人数或口味"),
-            types.BotCommand("reminder_add", "/添加提醒 - 名称 cron 正文"),
-            types.BotCommand("task_add", "/添加任务 - 名称 cron 指令"),
-            types.BotCommand("reminder_run", "/立即提醒 - 名称"),
-            types.BotCommand("task_run", "/立即执行 - 名称"),
-            types.BotCommand("reminder_delete", "/删除提醒 - 名称"),
-            types.BotCommand("task_delete", "/删除任务 - 名称"),
+            types.BotCommand("lyrics", "/查歌词 - 歌名；原版歌词输出"),
             types.BotCommand("download", "📥 下载指定频道/群组/链接的媒体文件"),
             types.BotCommand("forward", "➡️ 转发消息媒体至其他频道/群组"),
             types.BotCommand("plugins", "🧩 查看当前已启用的扩展插件列表"),
@@ -613,9 +603,7 @@ async def send_help_str(client: pyrogram.Client, chat_id):
         "/ainews - 📰 AI 早报：橘鸦 AI 每日资讯速递与大模型提炼总结\n"
         "/news - 🗞️ 综合早报：小真寻每日一言/摸鱼倒计时/微语/IT快讯/番剧\n\n"
         "/fortune - 今日运势\n"
-        "/pig - 今日小猪\n"
         "/image - 生图；/upscale - 回复图片升图\n"
-        "/ocr - 回复图片识别文字；/convert - 表情转换\n"
         "/latest - 查询 UP 主最新视频\n"
         "/subscribe - B站订阅；/unsubscribe - 取消订阅\n\n"
         "/状态 - 本机系统状态\n"
@@ -623,11 +611,7 @@ async def send_help_str(client: pyrogram.Client, chat_id):
         "/aqt - 回复内容生成名言梗图\n"
         "/mc成就 标题 描述 - MC 成就；/mc挑战 标题 描述 - MC 挑战\n"
         "/点歌 歌名 - 点歌；/QQ点歌 歌名 序号 - QQ 音源\n"
-        "/查歌词 歌名 - 文字歌词；/吃什么 食材或口味 - 菜谱\n"
-        "/添加提醒 名称 cron 正文 - 添加提醒\n"
-        "/添加任务 名称 cron 指令 - 添加任务\n"
-        "/立即提醒 名称 - 立即提醒；/立即执行 名称 - 执行任务\n"
-        "/删除提醒 名称 - 删除提醒；/删除任务 名称 - 删除任务\n\n"
+        "/查歌词 歌名 - 歌词\n\n"
         "📋 **进阶功能与管理指令 (点击即可发送)：**\n"
         "/sukebei - 🔞 绅士里区：检索 Sukebei R18 磁力直下 NAS\n"
         "/vcb - 💿 蓝光精压：检索 VCB-Studio 10-bit 高清原盘合集\n"

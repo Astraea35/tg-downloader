@@ -83,14 +83,31 @@ def test_bare_media_stays_on_nas_but_caption_commands_can_be_forwarded():
     ("invert", "反色"), ("flip", "左右翻转"), ("gif", "转GIF"),
     ("mc", "mc成就"), ("mc_challenge", "mc挑战"),
     ("music", "点歌"), ("qqmusic", "QQ点歌"), ("lyrics", "查歌词"),
-    ("eat", "吃什么"), ("reminder_add", "添加提醒"), ("task_add", "添加任务"),
-    ("reminder_run", "立即提醒"), ("task_run", "立即执行"),
-    ("reminder_delete", "删除提醒"), ("task_delete", "删除任务"),
 ])
 def test_menu_alias_preserves_arguments_and_routes_to_astrbot(alias, command):
     text = f"/{alias}@private_bot 名称 0 0 1 1 * 参数"
     assert bridge.should_forward(text, has_media=True)
     assert bridge.normalize_command(text) == f"/{command} 名称 0 0 1 1 * 参数"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["ocr", "表情转换", "今日小猪", "添加提醒", "吃什么"])
+async def test_removed_features_do_not_reach_astrbot(command):
+    message = SimpleNamespace(
+        text=f"/{command}", caption=None, reply_text=AsyncMock(),
+        stop_propagation=lambda: None,
+    )
+    await bridge.forward_message(SimpleNamespace(), message)
+    message.reply_text.assert_awaited_once_with("该功能未在 TG 启用。", quote=True)
+
+
+def test_telegram_layout_separates_sections_and_items_without_changing_code():
+    text = "# 标题\n1. 第一条\n2. 第二条\n## 详细信息\n- 要点\n```\n- code\n```"
+    result = bridge.telegram_markdown(text)
+    assert "**标题**\n\n1. 第一条\n\n2. 第二条" in result
+    assert "**详细信息**\n\n• 要点" in result
+    assert "```\n- code\n```" in result
+    assert bridge.telegram_markdown(result) == result
 
 
 def test_long_emoji_text_is_lossless_and_below_telegram_limit():

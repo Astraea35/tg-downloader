@@ -28,9 +28,12 @@ def test_menu_has_valid_unique_commands_covering_personal_features():
     assert all(1 <= len(item.description) <= 256 for item in commands)
     assert {
         "status", "aqt", "invert", "flip", "gif", "mc", "mc_challenge",
-        "music", "qqmusic", "lyrics", "eat", "reminder_add", "task_add",
-        "reminder_run", "task_run", "reminder_delete", "task_delete",
+        "music", "qqmusic", "lyrics",
     } <= set(names)
+    assert not {
+        "ocr", "convert", "pig", "eat", "reminder_add", "task_add",
+        "reminder_run", "task_run", "reminder_delete", "task_delete",
+    } & set(names)
 
 
 @pytest.mark.asyncio

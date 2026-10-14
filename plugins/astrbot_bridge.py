@@ -18,7 +18,7 @@ from pyrogram.handlers import MessageHandler
 
 PLUGIN_NAME = "AstrBot 私人插件联动"
 PLUGIN_DESC = "NAS 保留下载，个人插件由本机 AstrBot 提供，文字结果更新原消息"
-PLUGIN_VERSION = "1.0.3"
+PLUGIN_VERSION = "1.0.4"
 
 NAS_COMMANDS = {
     "start",
@@ -65,11 +65,8 @@ COMMAND_ALIASES = {
     "daily_news": "日报",
     "ribao": "日报",
     "fortune": "今日运势",
-    "pig": "今日小猪",
     "upscale": "升图",
     "image": "生图",
-    "ocr": "识别图片",
-    "convert": "表情转换",
     "latest": "最新视频",
     "subscribe": "订阅",
     "unsubscribe": "取消订阅",
@@ -82,13 +79,12 @@ COMMAND_ALIASES = {
     "music": "点歌",
     "qqmusic": "QQ点歌",
     "lyrics": "查歌词",
-    "eat": "吃什么",
-    "reminder_add": "添加提醒",
-    "task_add": "添加任务",
-    "reminder_run": "立即提醒",
-    "task_run": "立即执行",
-    "reminder_delete": "删除提醒",
-    "task_delete": "删除任务",
+}
+REMOVED_COMMANDS = {
+    "ocr", "识别图片", "convert", "表情转换", "pig", "今日小猪",
+    "eat", "吃什么", "reminder_add", "添加提醒", "task_add", "添加任务",
+    "reminder_run", "立即提醒", "task_run", "立即执行",
+    "reminder_delete", "删除提醒", "task_delete", "删除任务",
 }
 DOWNLOAD_LINK = re.compile(
     r"(?:https?://)?(?:www\.)?(?:t\.me/|twitter\.com/|x\.com/|"
@@ -155,7 +151,22 @@ def split_text(text: str, limit: int = 3500) -> list[str]:
 
 
 def telegram_markdown(text: str) -> str:
-    return re.sub(r"(?m)^#{1,6} (.+)$", r"**\1**", text)
+    """Space headings and list entries for reading on a narrow Telegram screen."""
+    lines = []
+    in_code = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            in_code = not in_code
+        if not in_code:
+            line = re.sub(r"^#{1,6}\s+(.+)$", r"**\1**", line)
+            line = re.sub(r"^(\s*)[-*]\s+", r"\1• ", line)
+            if re.fullmatch(r"\*\*.+\*\*", line) or re.match(r"^\s*(?:\d+[.)]\s+|• )", line):
+                if lines and lines[-1]:
+                    lines.append("")
+                lines.extend((line, ""))
+                continue
+        lines.append(line)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
 
 
 def _http_json(url: str, payload: dict, token: str, timeout: int = 60) -> dict:
@@ -233,6 +244,13 @@ async def _capture_media(client, message) -> list[dict]:
 
 
 async def forward_message(client, message) -> None:
+    text = message.text or message.caption or ""
+    if text.startswith("/"):
+        command = text[1:].split(maxsplit=1)[0].split("@", 1)[0].lower()
+        if command in REMOVED_COMMANDS:
+            await message.reply_text("该功能未在 TG 启用。", quote=True)
+            message.stop_propagation()
+            return
     settings = config()
     request_id = f"{message.chat.id}-{message.id}"
     if request_id in _states:
@@ -292,7 +310,6 @@ async def forward_message(client, message) -> None:
 
 
 async def _edit_text(client, chat_id: int, message_id: int, text: str) -> None:
-    text = telegram_markdown(text)
     try:
         await client.edit_message_text(
             chat_id,
@@ -314,7 +331,7 @@ async def _edit_text(client, chat_id: int, message_id: int, text: str) -> None:
 
 
 async def _update_text(client, chat_id: int, state: dict, text: str) -> None:
-    chunks = split_text(text)
+    chunks = split_text(telegram_markdown(text))
     if not chunks:
         return
     try:
@@ -332,7 +349,7 @@ async def _update_text(client, chat_id: int, state: dict, text: str) -> None:
             try:
                 result = await client.send_message(
                     chat_id,
-                    telegram_markdown(chunk),
+                    chunk,
                     parse_mode=pyrogram.enums.ParseMode.MARKDOWN,
                     disable_web_page_preview=True,
                 )
