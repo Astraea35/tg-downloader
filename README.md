@@ -16,7 +16,8 @@ NAS helper-service calls bypass system proxies. SteamCMD and qBittorrent transfe
 remain in their existing NAS services and follow those services' network settings.
 
 Telegram replies edit the same progress message. Long results retain all text in
-additional pages. Images, GIFs, videos and files are delivered as media and saved
+additional pages. If the original message is no longer available, the result
+is sent in a replacement message. Images, GIFs, videos and files are delivered as media and saved
 under the NAS `downloads/astrbot` directory.
 
 Supported English aliases include `/bili`, `/bili_list`, `/news`, `/fortune`,

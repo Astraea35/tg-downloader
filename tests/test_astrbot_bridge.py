@@ -138,6 +138,16 @@ async def test_plain_text_fallback_works_with_older_pyrogram(gateway, monkeypatc
 
 
 @pytest.mark.asyncio
+async def test_missing_progress_message_is_replaced_with_the_result(gateway):
+    import pyrogram
+
+    gateway.edit_message_text.side_effect = pyrogram.errors.MessageIdInvalid()
+    await bridge._update_text(gateway, 123, bridge._states["123-1"], "saved path")
+    assert gateway.send_message.await_args.args == (123, "saved path")
+    assert bridge._states["123-1"]["status_id"] == 99
+
+
+@pytest.mark.asyncio
 async def test_unknown_request_and_unlisted_user_cannot_send_messages():
     with pytest.raises(ValueError):
         await bridge.receive_push({"chat_id": 456, "parts": []})

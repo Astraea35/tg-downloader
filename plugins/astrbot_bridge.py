@@ -302,7 +302,14 @@ async def _update_text(client, chat_id: int, state: dict, text: str) -> None:
     chunks = split_text(text)
     if not chunks:
         return
-    await _edit_text(client, chat_id, state["status_id"], chunks[0])
+    try:
+        await _edit_text(client, chat_id, state["status_id"], chunks[0])
+    except pyrogram.errors.MessageIdInvalid:
+        replacement = await client.send_message(
+            chat_id, chunks[0], parse_mode=pyrogram.enums.ParseMode.DISABLED,
+            disable_web_page_preview=True,
+        )
+        state["status_id"] = replacement.id
     for index, chunk in enumerate(chunks[1:]):
         if index < len(state["pages"]):
             await _edit_text(client, chat_id, state["pages"][index], chunk)
