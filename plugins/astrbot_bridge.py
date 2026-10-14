@@ -18,7 +18,7 @@ from pyrogram.handlers import MessageHandler
 
 PLUGIN_NAME = "AstrBot 私人插件联动"
 PLUGIN_DESC = "NAS 保留下载，个人插件由本机 AstrBot 提供，文字结果更新原消息"
-PLUGIN_VERSION = "1.0.0"
+PLUGIN_VERSION = "1.0.2"
 
 NAS_COMMANDS = {
     "start",
@@ -143,7 +143,7 @@ def telegram_markdown(text: str) -> str:
     return re.sub(r"(?m)^#{1,6} (.+)$", r"**\1**", text)
 
 
-def _http_json(url: str, payload: dict, token: str, timeout: int = 15) -> dict:
+def _http_json(url: str, payload: dict, token: str, timeout: int = 60) -> dict:
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(
         url,
@@ -334,6 +334,14 @@ async def _update_text(client, chat_id: int, state: dict, text: str) -> None:
         await _edit_text(client, chat_id, extra, "此页内容已更新，请查看上方结果。")
 
 
+def _with_saved_paths(text: str, state: dict) -> str:
+    paths = state.get("saved_paths", [])
+    if not paths:
+        return text
+    locations = "\n".join(f"`{path}`" for path in paths)
+    return (text + "\n\n" if text else "") + "**已保存到 NAS**\n" + locations
+
+
 def _download_asset(asset: dict, destination: Path) -> None:
     settings = config()
     asset_id = str(asset.get("asset_id", ""))
@@ -401,7 +409,7 @@ async def receive_push(payload: dict) -> dict:
         if text:
             if kind != "status":
                 state["result_text"] = text
-            await _update_text(client, chat_id, state, text)
+            await _update_text(client, chat_id, state, _with_saved_paths(text, state))
         saved_paths = []
         for media in media_parts:
             name = Path(str(media.get("name", "file")).replace("\\", "/")).name
@@ -433,14 +441,14 @@ async def receive_push(payload: dict) -> dict:
                 raise ValueError("Unsupported media type")
         if media_parts:
             body = text or state.get("result_text", "")
-            if re.search(r"正在|请稍候|请稍等", body):
+            if re.search(r"正在|请稍候|请稍等|已开始生图任务", body):
                 body = ""
-            locations = "\n".join(f"`{path}`" for path in saved_paths)
+            state.setdefault("saved_paths", []).extend(saved_paths)
             await _update_text(
                 client,
                 chat_id,
                 state,
-                (body + "\n\n" if body else "") + "**已保存到 NAS**\n" + locations,
+                _with_saved_paths(body, state),
             )
     if delivery_id:
         _delivered[delivery_id] = time.monotonic()

@@ -19,6 +19,8 @@ Telegram replies edit the same progress message. Long results retain all text in
 additional pages. If the original message is no longer available, the result
 is sent in a replacement message. Images, GIFs, videos and files are delivered as media and saved
 under the NAS `downloads/astrbot` directory.
+Later text, including lyrics and image processing details, retains earlier saved
+file paths in the same result message.
 
 Supported English aliases include `/bili`, `/bili_list`, `/news`, `/fortune`,
 `/pig`, `/image`, `/upscale`, `/ocr`, `/convert`, `/latest`, `/subscribe` and

@@ -178,3 +178,33 @@ def test_web_callback_requires_matching_secret():
     }
     with pytest.raises(PermissionError):
         bridge.handle_web_push({}, "b" * 40)
+
+
+@pytest.mark.asyncio
+async def test_followup_lyrics_keep_previously_saved_media_paths(gateway):
+    bridge._states["123-1"]["saved_paths"] = ["/nas/music/song.mp3"]
+    await bridge.receive_push({
+        "chat_id": 123, "request_id": "123-1",
+        "parts": [{"type": "text", "text": "歌词第一行\n歌词第二行"}],
+    })
+    text = gateway.edit_message_text.await_args.args[2]
+    assert "歌词第一行\n歌词第二行" in text
+    assert "/nas/music/song.mp3" in text
+    assert text.count("/nas/music/song.mp3") == 1
+
+
+@pytest.mark.asyncio
+async def test_generated_media_replaces_started_notice_with_saved_path(
+    gateway, monkeypatch, tmp_path,
+):
+    bridge._states["123-1"]["result_text"] = "已开始生图任务 [任务ID: test]"
+    bridge._bot_instance.app = SimpleNamespace(save_path=str(tmp_path))
+    gateway.send_photo = AsyncMock()
+    monkeypatch.setattr(bridge, "_download_asset", lambda asset, target: None)
+    await bridge.receive_push({
+        "chat_id": 123, "request_id": "123-1",
+        "parts": [{"type": "image", "name": "result.png"}],
+    })
+    text = gateway.edit_message_text.await_args.args[2]
+    assert "已开始生图任务" not in text
+    assert "已保存到 NAS" in text and "result.png" in text
