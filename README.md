@@ -29,7 +29,9 @@ Supported English aliases include `/bili`, `/bili_list`, `/news`, `/fortune`,
 The Telegram menu also includes `/status`, `/invert`, `/flip`, `/gif`, `/aqt`,
 `/mc`, `/mc_challenge`, `/music`, `/qqmusic`, `/lyrics`, `/eat`, and
 `/reminder_add`, `/reminder_run`, `/reminder_delete`, `/task_add`, `/task_run`,
-`/task_delete`. English menu aliases map to the existing Chinese commands.
+`/task_delete`. Menu descriptions and help retain the original Chinese commands,
+such as `/点歌`, `/查歌词`, `/反色` and `/添加提醒`, which can be sent directly.
+English aliases are retained for Telegram's menu command fields and map to those commands.
 Startup and plugin reload synchronize the default, private-chat and allowed-user
 menus for the default, Chinese and English language variants.
 

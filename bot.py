@@ -196,23 +196,23 @@ class DownloadBot:
             types.BotCommand("latest", "查询UP主最新视频并总结"),
             types.BotCommand("subscribe", "订阅B站UP主"),
             types.BotCommand("unsubscribe", "取消B站UP主订阅"),
-            types.BotCommand("status", "查看本机 AstrBot 系统状态"),
-            types.BotCommand("invert", "回复图片或动图反色"),
-            types.BotCommand("flip", "回复图片或动图左右翻转"),
-            types.BotCommand("gif", "回复图片或视频转换为 GIF"),
+            types.BotCommand("status", "/状态 - 查看本机 AstrBot 系统状态"),
+            types.BotCommand("invert", "/反色 - 回复图片或动图"),
+            types.BotCommand("flip", "/左右翻转 - 回复图片或动图"),
+            types.BotCommand("gif", "/转GIF - 回复图片或视频"),
             types.BotCommand("aqt", "回复文字或图片生成名言梗图"),
-            types.BotCommand("mc", "生成 MC 成就：标题 描述；可回复图片"),
-            types.BotCommand("mc_challenge", "生成 MC 挑战：标题 描述；可回复图片"),
-            types.BotCommand("music", "点歌：歌名；文字列表选歌"),
-            types.BotCommand("qqmusic", "QQ 音源点歌：歌名 序号"),
-            types.BotCommand("lyrics", "查看文字歌词：歌名"),
-            types.BotCommand("eat", "推荐菜谱：食材、人数或口味"),
-            types.BotCommand("reminder_add", "添加提醒：名称 cron 正文"),
-            types.BotCommand("task_add", "添加任务：名称 cron 指令"),
-            types.BotCommand("reminder_run", "立即发送提醒：名称"),
-            types.BotCommand("task_run", "立即执行任务：名称"),
-            types.BotCommand("reminder_delete", "删除提醒：名称"),
-            types.BotCommand("task_delete", "删除任务：名称"),
+            types.BotCommand("mc", "/mc成就 - 标题 描述；可回复图片"),
+            types.BotCommand("mc_challenge", "/mc挑战 - 标题 描述；可回复图片"),
+            types.BotCommand("music", "/点歌 - 歌名；文字列表选歌"),
+            types.BotCommand("qqmusic", "/QQ点歌 - 歌名 序号"),
+            types.BotCommand("lyrics", "/查歌词 - 歌名；文字歌词"),
+            types.BotCommand("eat", "/吃什么 - 食材、人数或口味"),
+            types.BotCommand("reminder_add", "/添加提醒 - 名称 cron 正文"),
+            types.BotCommand("task_add", "/添加任务 - 名称 cron 指令"),
+            types.BotCommand("reminder_run", "/立即提醒 - 名称"),
+            types.BotCommand("task_run", "/立即执行 - 名称"),
+            types.BotCommand("reminder_delete", "/删除提醒 - 名称"),
+            types.BotCommand("task_delete", "/删除任务 - 名称"),
             types.BotCommand("download", "📥 下载指定频道/群组/链接的媒体文件"),
             types.BotCommand("forward", "➡️ 转发消息媒体至其他频道/群组"),
             types.BotCommand("plugins", "🧩 查看当前已启用的扩展插件列表"),
@@ -601,7 +601,7 @@ async def send_help_str(client: pyrogram.Client, chat_id):
 
     msg = (
         "👋 **你好！我是你的私人专属 AI 助理**\n\n"
-        "🚀 **常用核心指令 (点击指令可直接发送)：**\n"
+        "🚀 **常用核心指令：**\n"
         "/bili - 📺 视频总结：提取字幕并生成 Markdown 结构化笔记\n"
         "/bili_list - 📋 订阅清单：查看当前会话的 B 站订阅\n"
         "/pan - 🔍 网盘搜索：秒解 4K 精选影视/夸克/阿里/百度等 (后接关键词)\n"
@@ -618,16 +618,16 @@ async def send_help_str(client: pyrogram.Client, chat_id):
         "/ocr - 回复图片识别文字；/convert - 表情转换\n"
         "/latest - 查询 UP 主最新视频\n"
         "/subscribe - B站订阅；/unsubscribe - 取消订阅\n\n"
-        "/status - 本机系统状态\n"
-        "/invert - 反色；/flip - 左右翻转；/gif - 转 GIF\n"
+        "/状态 - 本机系统状态\n"
+        "/反色 - 反色；/左右翻转 - 左右翻转；/转GIF - 转 GIF\n"
         "/aqt - 回复内容生成名言梗图\n"
-        "/mc 标题 描述 - MC 成就；/mc_challenge - MC 挑战\n"
-        "/music 歌名 - 点歌；/qqmusic 歌名 序号 - QQ 音源\n"
-        "/lyrics 歌名 - 文字歌词；/eat 食材或口味 - 菜谱\n"
-        "/reminder_add 名称 cron 正文 - 添加提醒\n"
-        "/task_add 名称 cron 指令 - 添加任务\n"
-        "/reminder_run 名称 - 立即提醒；/task_run 名称 - 执行任务\n"
-        "/reminder_delete 名称 - 删除提醒；/task_delete 名称 - 删除任务\n\n"
+        "/mc成就 标题 描述 - MC 成就；/mc挑战 标题 描述 - MC 挑战\n"
+        "/点歌 歌名 - 点歌；/QQ点歌 歌名 序号 - QQ 音源\n"
+        "/查歌词 歌名 - 文字歌词；/吃什么 食材或口味 - 菜谱\n"
+        "/添加提醒 名称 cron 正文 - 添加提醒\n"
+        "/添加任务 名称 cron 指令 - 添加任务\n"
+        "/立即提醒 名称 - 立即提醒；/立即执行 名称 - 执行任务\n"
+        "/删除提醒 名称 - 删除提醒；/删除任务 名称 - 删除任务\n\n"
         "📋 **进阶功能与管理指令 (点击即可发送)：**\n"
         "/sukebei - 🔞 绅士里区：检索 Sukebei R18 磁力直下 NAS\n"
         "/vcb - 💿 蓝光精压：检索 VCB-Studio 10-bit 高清原盘合集\n"
