@@ -13,7 +13,8 @@ Telegram, Twitter extraction/downloads, FlareSolverr browser requests, search
 requests and Steam previews use the configured NAS proxy. A configured proxy
 failure does not switch these HTTP downloads to direct access. LAN bridge and
 NAS helper-service calls bypass system proxies. SteamCMD and qBittorrent transfers
-remain in their existing NAS services and follow those services' network settings.
+remain in their existing NAS services. qBittorrent uses the NAS SOCKS5 proxy;
+SteamCMD receives configured HTTP/HTTPS proxy environment variables.
 
 Telegram replies edit the same progress message. Long results retain all text in
 additional pages. If the original message is no longer available, the result
@@ -33,7 +34,10 @@ download links are kept on the NAS. AstrBot downtime does not disable downloads.
 Keep live configuration, API keys, Telegram sessions, plugin data and backups
 out of Git. `config.example.yaml` contains only deployment examples.
 
-The NAS Steam/qBittorrent helper reads `qbt.username` and `qbt.password` from its
-ignored `steamcmd_config.json`, or `QBT_USERNAME` and `QBT_PASSWORD` from its
-environment. A rejected login does not count as a valid session. Restart that
-independent helper after applying source updates.
+The NAS helper discovers fnOS's current qBittorrent credentials from the engine
+process matching the target Unix socket. It does not persist or log those
+credentials. Static credentials remain available from the ignored
+`steamcmd_config.json` or environment for other installations. A rejected login
+does not count as a valid session. Restart the independent helper after applying
+source updates. `steam_proxy` or `STEAM_PROXY` configures SteamCMD container
+HTTP/HTTPS proxy variables.

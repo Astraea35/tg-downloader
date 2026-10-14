@@ -42,7 +42,7 @@
 | `/image 描述`、`/upscale` | 已启用的生图、回复图片升图 |
 | `/pan 关键词`、`/nyaa 关键词` | NAS 网盘、动漫资源检索 |
 | `/wp 创意工坊链接`、`/save` | NAS 壁纸下载、贴纸保存 |
-| `/bt` | 查看 NAS qBittorrent 任务、进度、速度和保存目录；辅助服务授权仍需修复 |
+| `/bt` | 查看 NAS qBittorrent 任务、进度、速度和保存目录 |
 | `/help` | 下载器命令帮助 |
 
 中文 AstrBot 命令也可以直接发送。GIF 和名言等创作结果本身是图片，保留
@@ -65,19 +65,24 @@ GIF 反色、引用文字生成名言图片、引用图片生成 MC 成就、文
 启动新的大型 BT 下载。本机在内存使用较高时出现过事件循环延迟；
 NAS 等待本机接收请求的超时已从 15 秒调整到 60 秒。
 
-## 剩余问题
+## NAS 辅助服务
 
-`/bt` 的独立 NAS 辅助服务当前返回 `auth failed`。这不是 AstrBot 联动报错。
-辅助服务源码已移除硬编码凭证，改为读取 Git 忽略的 `steamcmd_config.json`
-中 `qbt.username`、`qbt.password`，或 `QBT_USERNAME`、`QBT_PASSWORD` 环境变量。
-仍需在 NAS 上核实有效的 qBittorrent 凭证并部署、重启该独立服务。
+`/bt` 的 `auth failed` 已修复。fnOS 的下载引擎使用运行时动态密码；
+辅助服务现在从与目标 Unix socket 匹配的 `trim-qbittorrent-nox` 进程中读取
+当前凭证，只在内存中使用，不记录或上传密码。其他 qBittorrent 部署仍可使用
+`QBT_USERNAME`、`QBT_PASSWORD` 或忽略的 `steamcmd_config.json` 中的静态配置。
+登录必须同时满足成功状态、`Ok.` 响应和有效会话 cookie。
 
-当前没有可用的 fnOS 管理会话。继续处理运行中的辅助服务需要 NAS 管理
-登录。fnOS 技能使用 OAuth：用户自行在浏览器登录、确认授权，并在工具
-终端粘贴一次性授权码；无需向聊天发送 NAS 密码。
+`steam-workshop-service.service` 已重启加载修改，接口和 TG `/bt` 实测均成功，
+读取到原有的 17 个 BT 任务。没有重建下载引擎或删除既有任务、文件。
 
-SteamCMD 和 qBittorrent 是独立 NAS 服务，数据传输仍遵循它们自身的网络
-设置；本次没有把这些协议的实际代理路径宣称为已验证。
+qBittorrent 已配置 NAS 的 `192.168.1.34:7890` SOCKS5 代理，包括主机名解析、
+BT、Peer、RSS 和其他 HTTP 请求。设置回读一致，NAS 上通过此 SOCKS5 通道
+建立 HTTPS 连接并获得 HTTP 200。没有用这一项冒充新 BT 大文件下载的实测。
+
+SteamCMD 容器由 `steam_proxy` 配置或 `STEAM_PROXY` 环境变量注入大小写的
+HTTP/HTTPS 代理变量，当前配置为 NAS HTTP 代理。没有实际下载付费 Steam
+内容；SteamCMD 各种协议是否均使用这些变量不作已验证声明。
 
 ## GitHub
 

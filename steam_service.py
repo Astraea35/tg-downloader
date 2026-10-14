@@ -19,6 +19,7 @@ import subprocess
 import threading
 import time
 import urllib.parse
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 HOST = "0.0.0.0"
@@ -76,10 +77,16 @@ def save_config(cfg):
 
 
 def run_steamcmd(args: list, timeout: int = 120) -> tuple[int, str]:
+  proxy = os.environ.get("STEAM_PROXY") or load_config().get("steam_proxy")
+  proxy_args = [
+      entry for name in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy")
+      for entry in ("--env", f"{name}={proxy}")
+  ] if proxy else []
   cmd = [
       "docker",
       "run",
       "--rm",
+      *proxy_args,
       "-v",
       f"{STEAMCMD_DATA_DIR}/root:/root",
       "-v",
@@ -391,8 +398,36 @@ class UnixHTTPConnection(http.client.HTTPConnection):
     self.sock.connect(self.socket_path)
 
 
+def get_fnos_qbt_credentials(sock_path: str, proc_root: str = "/proc") -> dict:
+  """Read fnOS's current engine credentials without persisting or logging them."""
+  try:
+    processes = Path(proc_root).iterdir()
+    for process in processes:
+      if not process.name.isdecimal():
+        continue
+      try:
+        arguments = (process / "cmdline").read_bytes().decode().split("\0")
+      except (OSError, UnicodeError):
+        continue
+      if not arguments or Path(arguments[0]).name != "trim-qbittorrent-nox":
+        continue
+      options = {}
+      for argument in arguments[1:]:
+        key, separator, value = argument.partition("=")
+        if separator and key in {"--webui-sock-path", "--webui-password"}:
+          options[key] = value
+      if (
+          options.get("--webui-sock-path") == sock_path
+          and options.get("--webui-password")
+      ):
+        return {"username": "admin", "password": options["--webui-password"]}
+  except OSError:
+    pass
+  return {}
+
+
 def get_qbt_cookie(sock_path: str = "/home/17354371800/qbt.sock") -> str:
-  configuration = load_config().get("qbt", {})
+  configuration = get_fnos_qbt_credentials(sock_path) or load_config().get("qbt", {})
   username = os.environ.get("QBT_USERNAME") or configuration.get("username")
   password = os.environ.get("QBT_PASSWORD") or configuration.get("password")
   if not username or not password:
