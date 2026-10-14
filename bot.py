@@ -196,6 +196,23 @@ class DownloadBot:
             types.BotCommand("latest", "查询UP主最新视频并总结"),
             types.BotCommand("subscribe", "订阅B站UP主"),
             types.BotCommand("unsubscribe", "取消B站UP主订阅"),
+            types.BotCommand("status", "查看本机 AstrBot 系统状态"),
+            types.BotCommand("invert", "回复图片或动图反色"),
+            types.BotCommand("flip", "回复图片或动图左右翻转"),
+            types.BotCommand("gif", "回复图片或视频转换为 GIF"),
+            types.BotCommand("aqt", "回复文字或图片生成名言梗图"),
+            types.BotCommand("mc", "生成 MC 成就：标题 描述；可回复图片"),
+            types.BotCommand("mc_challenge", "生成 MC 挑战：标题 描述；可回复图片"),
+            types.BotCommand("music", "点歌：歌名；文字列表选歌"),
+            types.BotCommand("qqmusic", "QQ 音源点歌：歌名 序号"),
+            types.BotCommand("lyrics", "查看文字歌词：歌名"),
+            types.BotCommand("eat", "推荐菜谱：食材、人数或口味"),
+            types.BotCommand("reminder_add", "添加提醒：名称 cron 正文"),
+            types.BotCommand("task_add", "添加任务：名称 cron 指令"),
+            types.BotCommand("reminder_run", "立即发送提醒：名称"),
+            types.BotCommand("task_run", "立即执行任务：名称"),
+            types.BotCommand("reminder_delete", "删除提醒：名称"),
+            types.BotCommand("task_delete", "删除任务：名称"),
             types.BotCommand("download", "📥 下载指定频道/群组/链接的媒体文件"),
             types.BotCommand("forward", "➡️ 转发消息媒体至其他频道/群组"),
             types.BotCommand("plugins", "🧩 查看当前已启用的扩展插件列表"),
@@ -206,7 +223,23 @@ class DownloadBot:
     async def update_bot_commands(self):
         """Refreshes bot commands registered in Telegram."""
         if self.bot and getattr(self.bot, "is_connected", False):
-            await self.bot.set_bot_commands(self.get_bot_commands())
+            commands = self.get_bot_commands()
+            scopes = [
+                types.BotCommandScopeDefault(),
+                types.BotCommandScopeAllPrivateChats(),
+                *[types.BotCommandScopeChat(int(uid)) for uid in set(self.allowed_user_ids)],
+            ]
+            for scope in scopes:
+                try:
+                    for language in ("", "zh", "en"):
+                        await self.bot.set_bot_commands(
+                            commands, scope=scope, language_code=language,
+                        )
+                except Exception as error:
+                    if not isinstance(scope, types.BotCommandScopeChat):
+                        raise
+                    logger.warning("Could not update private command menu: {}", type(error).__name__)
+            await self.bot.set_chat_menu_button(menu_button=types.MenuButtonCommands())
 
     def assign_config(self, _config: dict):
         """assign config from str.
@@ -290,7 +323,7 @@ class DownloadBot:
         admin = await self.client.get_me()
         self.allowed_user_ids.append(admin.id)
 
-        await self.bot.set_bot_commands(self.get_bot_commands())
+        await self.update_bot_commands()
 
         self.bot.add_handler(
             MessageHandler(
@@ -585,6 +618,16 @@ async def send_help_str(client: pyrogram.Client, chat_id):
         "/ocr - 回复图片识别文字；/convert - 表情转换\n"
         "/latest - 查询 UP 主最新视频\n"
         "/subscribe - B站订阅；/unsubscribe - 取消订阅\n\n"
+        "/status - 本机系统状态\n"
+        "/invert - 反色；/flip - 左右翻转；/gif - 转 GIF\n"
+        "/aqt - 回复内容生成名言梗图\n"
+        "/mc 标题 描述 - MC 成就；/mc_challenge - MC 挑战\n"
+        "/music 歌名 - 点歌；/qqmusic 歌名 序号 - QQ 音源\n"
+        "/lyrics 歌名 - 文字歌词；/eat 食材或口味 - 菜谱\n"
+        "/reminder_add 名称 cron 正文 - 添加提醒\n"
+        "/task_add 名称 cron 指令 - 添加任务\n"
+        "/reminder_run 名称 - 立即提醒；/task_run 名称 - 执行任务\n"
+        "/reminder_delete 名称 - 删除提醒；/task_delete 名称 - 删除任务\n\n"
         "📋 **进阶功能与管理指令 (点击即可发送)：**\n"
         "/sukebei - 🔞 绅士里区：检索 Sukebei R18 磁力直下 NAS\n"
         "/vcb - 💿 蓝光精压：检索 VCB-Studio 10-bit 高清原盘合集\n"

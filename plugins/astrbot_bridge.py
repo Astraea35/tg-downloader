@@ -18,7 +18,7 @@ from pyrogram.handlers import MessageHandler
 
 PLUGIN_NAME = "AstrBot 私人插件联动"
 PLUGIN_DESC = "NAS 保留下载，个人插件由本机 AstrBot 提供，文字结果更新原消息"
-PLUGIN_VERSION = "1.0.2"
+PLUGIN_VERSION = "1.0.3"
 
 NAS_COMMANDS = {
     "start",
@@ -74,6 +74,21 @@ COMMAND_ALIASES = {
     "subscribe": "订阅",
     "unsubscribe": "取消订阅",
     "status": "status",
+    "invert": "反色",
+    "flip": "左右翻转",
+    "gif": "转GIF",
+    "mc": "mc成就",
+    "mc_challenge": "mc挑战",
+    "music": "点歌",
+    "qqmusic": "QQ点歌",
+    "lyrics": "查歌词",
+    "eat": "吃什么",
+    "reminder_add": "添加提醒",
+    "task_add": "添加任务",
+    "reminder_run": "立即提醒",
+    "task_run": "立即执行",
+    "reminder_delete": "删除提醒",
+    "task_delete": "删除任务",
 }
 DOWNLOAD_LINK = re.compile(
     r"(?:https?://)?(?:www\.)?(?:t\.me/|twitter\.com/|x\.com/|"

@@ -26,6 +26,12 @@ file paths in the same result message.
 Supported English aliases include `/bili`, `/bili_list`, `/news`, `/fortune`,
 `/pig`, `/image`, `/upscale`, `/ocr`, `/convert`, `/latest`, `/subscribe` and
 `/unsubscribe`. AstrBot's Chinese commands can also be sent directly.
+The Telegram menu also includes `/status`, `/invert`, `/flip`, `/gif`, `/aqt`,
+`/mc`, `/mc_challenge`, `/music`, `/qqmusic`, `/lyrics`, `/eat`, and
+`/reminder_add`, `/reminder_run`, `/reminder_delete`, `/task_add`, `/task_run`,
+`/task_delete`. English menu aliases map to the existing Chinese commands.
+Startup and plugin reload synchronize the default, private-chat and allowed-user
+menus for the default, Chinese and English language variants.
 
 The bridge authenticates both directions and accepts only whitelisted private
 chats. Download commands, Twitter links, Steam links, torrent tasks and Telegram

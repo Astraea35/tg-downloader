@@ -79,6 +79,20 @@ def test_bare_media_stays_on_nas_but_caption_commands_can_be_forwarded():
     assert bridge.normalize_command("/news") == "/日报"
 
 
+@pytest.mark.parametrize("alias,command", [
+    ("invert", "反色"), ("flip", "左右翻转"), ("gif", "转GIF"),
+    ("mc", "mc成就"), ("mc_challenge", "mc挑战"),
+    ("music", "点歌"), ("qqmusic", "QQ点歌"), ("lyrics", "查歌词"),
+    ("eat", "吃什么"), ("reminder_add", "添加提醒"), ("task_add", "添加任务"),
+    ("reminder_run", "立即提醒"), ("task_run", "立即执行"),
+    ("reminder_delete", "删除提醒"), ("task_delete", "删除任务"),
+])
+def test_menu_alias_preserves_arguments_and_routes_to_astrbot(alias, command):
+    text = f"/{alias}@private_bot 名称 0 0 1 1 * 参数"
+    assert bridge.should_forward(text, has_media=True)
+    assert bridge.normalize_command(text) == f"/{command} 名称 0 0 1 1 * 参数"
+
+
 def test_long_emoji_text_is_lossless_and_below_telegram_limit():
     text = ("中文 😀 **段落**\n" * 1000) + "END"
     chunks = bridge.split_text(text)
